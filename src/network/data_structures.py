@@ -8,10 +8,19 @@ class Value:
         self._op = _op
 
     def __mul__(self, other):
-        pass
+        
+        def backward(self, other):
+            self.grad += other.data
+            other.grad += self.data
+
+        return Value(self.data * other.data, _children=(self, other), _op='*')
 
     def __add__(self, other):
-        pass
+
+        def backward(self, other):
+            self.grad += self.grad
+            other.grad += other.grad
+        return Value(self.data + other.data, _children=(self, other), _op='+')
 
     def __pow__(self, other):
         pass
