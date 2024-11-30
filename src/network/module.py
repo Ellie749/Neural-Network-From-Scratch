@@ -15,6 +15,9 @@ class Neuron(Module):
         """
         self.w = [Value(random.uniform(-1, 1)) for i in range(number_of_innodes)]
         self.b = Value(0.0001)
+    
+    def parameters(self):
+        return self.w + [self.b]
 
     def __call__(self, data: list):
         """
@@ -41,11 +44,14 @@ class Layer(Module):
     def __init__(self, n_neurons, ins) -> None:
         self.layer = [Neuron(ins) for i in range(n_neurons)]
 
-    def __call__(self):
-        pass
+    def __call__(self, x):
+        return [n(x) for n in self.layer]
 
     def __repr__(self):
         return f"{[i for i in self.layer]}"
+    
+    def parameters(self):
+        return [p for n in self.layer for p in n.parameters()]
 
 class MLP(Module):
     def __init__(self, d_input: int, n_neurons_in_layers: list):
@@ -58,9 +64,12 @@ class MLP(Module):
         for i in range(len(p)-1):
             t = Layer(p[i+1], p[i])
             self.r.append(t)
-            
+    
+    def parameters(self):
+        return [p for layer in self.r for p in layer.parameters()]
 
     def __call__(self, data):
+        '''
         t = data
         #print(self.r)
         for i in range(len(self.r)):
@@ -75,7 +84,11 @@ class MLP(Module):
         
         #return t[0].data
         return t[0] #we need them to be of type Value to be able to backpropagate through loss
-
+        '''
+        for layer in self.r:
+            data = layer(data)
+            
+        return data[0]
 
 
 '''
@@ -102,10 +115,10 @@ xs = [
     [3.0, -1.0, 0.5],
     [1.0, 1.0, -1.0]
 ]
-ys = [1.0, -1.0, 1.0]
+ys = [3.0, -2.0, 4.0]
 
-network = MLP(3, [4, 4, 1])
-ypred = [network(x) for x in xs]
+network = MLP(3, [4,3,2])
+'''ypred = [network(x) for x in xs]
 
 print(f'prediction: {ypred}')
 print(f'labels: {ys}')
@@ -114,10 +127,25 @@ print(f'labels: {ys}')
 
 loss = calc_loss(ys, ypred)
 print(f"loss is: {loss}")
-draw_graph(loss)
+
 
 loss.grad = 1
-
 loss.backward()
+#draw_graph(loss)
+#print(network.r[-1].layer[-1].w[1].grad)
+'''
 
-print(network.r[0].layer[1].w[1].grad)
+for k in range(100):
+    ypred = [network(x) for x in xs]
+    print(f'prediction: {ypred}')
+    loss = calc_loss(ys, ypred)
+
+    for p in network.parameters():
+        p.grad = 0.0
+    loss.backward()
+
+    for p in network.parameters():
+        p.data += -0.1 * p.grad
+    
+    print(k, loss.data)
+

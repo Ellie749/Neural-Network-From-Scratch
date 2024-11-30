@@ -4,7 +4,7 @@ from activation import Activation
 from visaulization_model import draw_graph
 
 class Value:
-    def __init__(self, data: float, grad=0, _children=(), _op='') -> None:
+    def __init__(self, data: float, _children=(), _op='leaf') -> None:
         """
         Initialize object values
 
@@ -15,7 +15,7 @@ class Value:
         _backward: keeps track of the relevant derivative of the node relevant to the arithmetic operation
         """
         self.data = data
-        self.grad = grad
+        self.grad = 0
         self._prev = set(_children)
         self._op = _op
         self._backward = lambda: None #function to be called
@@ -44,8 +44,25 @@ class Value:
             other.grad += out.grad
         out._backward = _backward
         return out
+    '''
+    def backward(self):
 
+        # topological order all of the children in the graph
+        topo = []
+        visited = set()
+        def build_topo(v):
+            if v not in visited:
+                visited.add(v)
+                for child in v._prev:
+                    build_topo(child)
+                topo.append(v)
+        build_topo(self)
 
+        # go one variable at a time and apply the chain rule to get its gradient
+        self.grad = 1
+        for v in reversed(topo):
+            v._backward()
+    '''
     def backward(self):
         visited = set()
         nodes = []
@@ -62,7 +79,7 @@ class Value:
             return nodes
         all_nodes = build_back(self)
 
-        self.grad =1
+        self.grad = 1
         for node in all_nodes:
             node._backward()
 
@@ -93,7 +110,7 @@ class Value:
         return out
     """
 
-    def activation(self, name='tanh'):
+    def activation(self):
         '''
         act = Activation(name)
         out = act.apply(self.data)

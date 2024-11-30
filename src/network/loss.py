@@ -13,7 +13,7 @@ def calc_loss(y_true, y_pred, name='MSE'):
             out = out + t
 
 
-        print(type(out))
+        #print(type(out))
     elif name == 'MAE':
         pass
     
@@ -22,7 +22,7 @@ def calc_loss(y_true, y_pred, name='MSE'):
 
     else:
         pass
-
+    out.grad = 1
     return out
 
 
