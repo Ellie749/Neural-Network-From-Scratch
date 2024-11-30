@@ -1,6 +1,7 @@
 import math
 import pandas as pd
 from activation import Activation
+from visaulization_model import draw_graph
 
 class Value:
     def __init__(self, data: float, grad=0, _children=(), _op='') -> None:
@@ -59,12 +60,38 @@ class Value:
                 for child in node._prev:
                     build_back(child)
             return nodes
-        
         all_nodes = build_back(self)
+
+        self.grad =1
         for node in all_nodes:
             node._backward()
 
+    def __sub__(self, other):
+        return self + (-other)
+    
+    def __rsub__(self, other):
+        return self - other
+        
+    def __neg__(self): #because of sub
+        return self * -1
 
+    """
+    def __pow__(self, other):
+        '''
+        out = Value(0)
+        for i in range(other):
+            out += i*i
+        return out
+        '''
+        assert isinstance(other, (int, float)), "only supporting int/float powers for now"
+        out = Value(self.data**other, (self,), f'**{other}')
+
+        def _backward():
+            self.grad += (other * self.data**(other-1)) * out.grad
+        out._backward = _backward
+        print(f"pow out: {out}")
+        return out
+    """
 
     def activation(self, name='tanh'):
         '''
@@ -72,7 +99,7 @@ class Value:
         out = act.apply(self.data)
         return Value(out)
         '''
-        out = Value(0 if self.data < 0 else self.data, (self,), 'ReLU')
+        out = Value(0 if self.data < 0 else self.data, (self,), _op='ReLU')
 
         def _backward():
             self.grad += (out.data > 0) * out.grad

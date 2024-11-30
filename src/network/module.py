@@ -1,5 +1,8 @@
 import random
 from data_structures import Value
+from loss import calc_loss
+from visaulization_model import draw_graph
+
 
 class Module:
     pass
@@ -22,11 +25,12 @@ class Neuron(Module):
         sum_ = 0
         for i in range(len(data)):
             sum_ += data[i] * self.w[i]
-            print(sum_)
+            #print(sum_)
         
         sum_ += self.b
-        print(sum_)
+        #print(f"result before activation: {sum_}")
         out = sum_.activation() #you can pass activation function name of your choice
+        #print(f"result after activation: {out}")
 
         return out
 
@@ -61,23 +65,59 @@ class MLP(Module):
         #print(self.r)
         for i in range(len(self.r)):
             list_= []
-            print(f"len[0]={len(self.r[0].layer)}")
+            #print(f"len[0]={len(self.r[0].layer)}")
             for j in range(len(self.r[i].layer)):
                 print(f"Input data: {t}")
                 print(f"layer {i} neurons weights are: {self.r[i].layer}")
                 list_.append(self.r[i].layer[j](t))
-                print(f"list_: {list_}")
+                #print(f"list_: {list_}")
             t = list_
         
-        return t[0]
+        #return t[0].data
+        return t[0] #we need them to be of type Value to be able to backpropagate through loss
 
-            
 
 
+'''
 x = [4, 6]
 mlp = MLP(2, [3,2])
 y_pred = mlp(x)
 
 print(y_pred)
 
+xs = [
+    [2.0, 3.0, -1.0],
+    [3.0, -1.0, 0.5],
+    [1.0, 1.0, -1.0]
+]
 
+n = MLP(3, [4, 4, 1])
+ys = [1.0, -1.0, 1.0]
+ypred = [n(x) for x in xs]
+print(ypred)
+
+'''
+xs = [
+    [2.0, 3.0, -1.0],
+    [3.0, -1.0, 0.5],
+    [1.0, 1.0, -1.0]
+]
+ys = [1.0, -1.0, 1.0]
+
+network = MLP(3, [4, 4, 1])
+ypred = [network(x) for x in xs]
+
+print(f'prediction: {ypred}')
+print(f'labels: {ys}')
+
+
+
+loss = calc_loss(ys, ypred)
+print(f"loss is: {loss}")
+draw_graph(loss)
+
+loss.grad = 1
+
+loss.backward()
+
+print(network.r[0].layer[1].w[1].grad)
