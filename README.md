@@ -1,0 +1,1 @@
+In this project, a new framework for Multi Layer Perceptron and Neural Networks is made.
